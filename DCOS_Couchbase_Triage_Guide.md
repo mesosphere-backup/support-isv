@@ -8,7 +8,10 @@ DC/OS Couchbase is an automated service that makes it easy to deploy and manage 
 3. Collect Node Logs - stderr & stdout.
 Pro Tip: ​dcos task log --all couchbase-dev > couchbase-dev.log
 
-### Couchbase Specific Logs
+## Couchbase Server general troubleshooting
+Couchbase Troubleshooting: https://developer.couchbase.com/documentation/server/current/troubleshooting/troubleshooting-intro.html
+
+### Couchbase Server Specific Logs
 All logs from /var/lib/couchbase/logs
 
 ## General framework troubleshooting
@@ -93,13 +96,25 @@ After the merge is completed it is also synced with the s3 bucket. After that bo
 
 Couchbase framework supports 2 deployment topologies:
 
-1. Data nodes have all the Couchbase server personalities (for development purposes only)
+1. In `Development deployment` Data nodes have all the Couchbase server service personalities (data, index, query, full text search, eventing, and analytics).
+
+It is enabled by checking `all services enabled` in the `data service` section.
+
+By default, Couchbase Server allows 80% of a node's total available memory to be allocated to the server and its services. In the data, index, fts, eventing , and analytics service configuration section ensure that `mem usable` is set so that the sum of them all is no more then 80% of memory configure for data services.
+
+Service `counts` for index, fts, eventing , and analytics should be set to 0
 
 ![Resources](img/couchbase/dev_deploy.png)
 
-2. Each couchbase server personality runs in its own container (Production deployment)
+2. In `Production deployment` each Couchbase server service personality (data, index, query, full text search, eventing, and analytics) runs in its own container.
 
-![Resources](img/couchbase/prod_deploy.png)
+In the respective service personality configuration sections, you select the count you want. The following sample shows 2 data, 1 index, 1 query, 1 fts, 1 eventing, and 1 analytics service.
 
-*To verify*:
-- Get Yml from the scheduler logs
+
+![Resources](img/couchbase/prod_deploy_dcos.png)
+
+![Resources](img/couchbase/prod_deploy_couch.png)
+
+Since all Couchbase service nodes require the same ports, you will in the former sample, have to have a DC/OS cluster with 7 private agents.
+
+`Higher density` can be achieved by using `virtual networking` where each container get its own IP. In combination with `placement constraints` you can then also colocate services on the same DC/OS agent as fits your specific needs.
