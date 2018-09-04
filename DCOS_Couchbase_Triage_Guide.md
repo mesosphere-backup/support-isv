@@ -8,7 +8,10 @@ DC/OS Couchbase is an automated service that makes it easy to deploy and manage 
 3. Collect Node Logs - stderr & stdout.
 Pro Tip: ​dcos task log --all couchbase-dev > couchbase-dev.log
 
-### Couchbase Specific Logs
+## Couchbase Server general troubleshooting
+Couchbase Troubleshooting: https://developer.couchbase.com/documentation/server/current/troubleshooting/troubleshooting-intro.html
+
+### Couchbase Server Specific Logs
 All logs from /var/lib/couchbase/logs
 
 ## General framework troubleshooting
@@ -22,19 +25,19 @@ There are situations where a complete node replacement can become necessary, e.g
 
 We first need to `failover` to the remaining couchbase nodes.
 
-![Resources](img/replace02.png)
+![Resources](img/couchbase/replace02.png)
 
 Confirm the failover request.
 
-![Resources](img/replace04.png)
+![Resources](img/couchbase/replace04.png)
 
 Once the failover is complete a `rebalance` is required.
 
-![Resources](img/replace05.png)
+![Resources](img/couchbase/replace05.png)
 
 With that our ill node is removed from the couchbase cluster.
 
-![Resources](img/replace06.png)
+![Resources](img/couchbase/replace06.png)
 
 Next we use the `dcos cli` to replace the node by using the following command.
 
@@ -44,19 +47,19 @@ dcos couchbase pod replace data-1
 
 Looking at the mesos console we see that data-1-node got killed and a new one created.
 
-![Resources](img/replace03.png)
+![Resources](img/couchbase/replace03.png)
 
 Back in the coucbase console we need to `add` the newly created node to the couchbase cluster. Since in our sample we replace a data node therefore select the `data checkbox` only.
 
-![Resources](img/replace07.png)
+![Resources](img/couchbase/replace07.png)
 
 The node is added to the cluster and a another `rebalance` is required.
 
-![Resources](img/replace08.png)
+![Resources](img/couchbase/replace08.png)
 
 After that we are back to normal.
 
-![Resources](img/replace09.png)
+![Resources](img/couchbase/replace09.png)
 
 
 ### Scenario: Backup and Restore
@@ -93,14 +96,25 @@ After the merge is completed it is also synced with the s3 bucket. After that bo
 
 Couchbase framework supports 2 deployment topologies:
 
-1. Data nodes have all the Couchbase server personalities (for development purposes only)
+1. In `Development deployment` Data nodes have all the Couchbase server service personalities (data, index, query, full text search, eventing, and analytics).
 
-![Resources](img/dev_deploy.png)
+It is enabled by checking `all services enabled` in the `data service` section.
 
-2. Each couchbase server personality runs in its own container (Production deployment)
+By default, Couchbase Server allows 80% of a node's total available memory to be allocated to the server and its services. In the data, index, fts, eventing , and analytics service configuration section ensure that `mem usable` is set so that the sum of them all is no more then 80% of memory configure for data services.
 
-![Resources](img/prod_deploy.png)
+Service `counts` for index, fts, eventing , and analytics should be set to 0
 
-*To verify*:
-- Get Yml from the scheduler logs
+![Resources](img/couchbase/dev_deploy.png)
 
+2. In `Production deployment` each Couchbase server service personality (data, index, query, full text search, eventing, and analytics) runs in its own container.
+
+In the respective service personality configuration sections, you select the count you want. The following sample shows 2 data, 1 index, 1 query, 1 fts, 1 eventing, and 1 analytics service.
+
+
+![Resources](img/couchbase/prod_deploy_dcos.png)
+
+![Resources](img/couchbase/prod_deploy_couch.png)
+
+Since all Couchbase service nodes require the same ports, you will in the former sample, have to have a DC/OS cluster with 7 private agents.
+
+`Higher density` can be achieved by using `virtual networking` where each container get its own IP. In combination with `placement constraints` you can then also colocate services on the same DC/OS agent as fits your specific needs.
