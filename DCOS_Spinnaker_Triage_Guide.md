@@ -17,4 +17,4 @@ https://docs.mesosphere.com/services/ops-guide/troubleshooting/
 
 All Spinnaker services except `redis` and `deck` are springboot applications which write logs to stdout. In the service config section of the Spinnaker service debug level log output can be enabled for the springboot based services.
 
-When doing config changes for one of the spinnaker services its stdout log should be observed.
+When doing config changes for one of the spinnaker services its stdout log should be observed when it restarts.
