@@ -8,7 +8,7 @@ The Spinnaker service is a micro service composition, a good overview on the mic
 1. Collect a DC/OS log bundle
 2. Collect Scheduler logs - stderr & stdout.
 3. Collect Node Logs - stderr & stdout.
-Pro Tip: ​dcos task log --all <task-id> > all.log
+Pro Tip: ​dcos task log --all task-id > all.log
 
 ## General framework troubleshooting
 https://docs.mesosphere.com/services/ops-guide/troubleshooting/
